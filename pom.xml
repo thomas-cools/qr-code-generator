@@ -15,10 +15,20 @@
     </properties>
 
     <dependencies>
-     <dependency>
-        <groupId>io.nayuki</groupId>
-        <artifactId>qrcodegen</artifactId>
-        <version>1.8.0</version>
-     </dependency>
+        <dependency>
+            <groupId>io.nayuki</groupId>
+            <artifactId>qrcodegen</artifactId>
+            <version>1.8.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.googlecode.ez-vcard</groupId>
+            <artifactId>ez-vcard</artifactId>
+            <version>0.11.3</version>
+        </dependency>
+        <dependency>
+            <groupId>info.picocli</groupId>
+            <artifactId>picocli</artifactId>
+            <version>4.6.3</version>
+        </dependency>
     </dependencies>
 </project>
