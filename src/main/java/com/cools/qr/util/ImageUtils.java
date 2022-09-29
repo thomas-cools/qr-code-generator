@@ -2,7 +2,6 @@ package com.cools.qr.util;
 
 import io.nayuki.qrcodegen.QrCode;
 
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.Objects;
 

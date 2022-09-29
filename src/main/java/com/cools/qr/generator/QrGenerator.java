@@ -19,6 +19,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -28,28 +30,33 @@ public class QrGenerator implements Runnable {
 
     private static final Logger log = Logger.getLogger(QrGenerator.class.getName());
 
-    @CommandLine.Parameters(arity = "1", paramLabel = "first name", description = "The contact's first name")
+    @CommandLine.Parameters(index = "0", arity = "1", paramLabel = "first name", description = "The contact's first " +
+                                                                                               "name")
     private String firstName;
 
-    @CommandLine.Parameters(arity = "1", paramLabel = "last name", description = "The contact's last name")
+    @CommandLine.Parameters(index = "1", arity = "1", paramLabel = "last name", description = "The contact's last name")
     private String lastName;
 
-    @CommandLine.Parameters(arity = "1", paramLabel = "email", description = "The contact's email address")
+    @CommandLine.Parameters(index = "2", arity = "1", paramLabel = "email", description = "The contact's email address")
     private String email;
 
-    @CommandLine.Parameters(arity = "1", paramLabel = "phoneNumbers", description = "The contact's phone numbers")
+    @CommandLine.Parameters(index = "3", arity = "1", paramLabel = "phoneNumbers", description = "The contact's phone" +
+                                                                                                 " numbers")
     private Map<TelephoneType, String> phoneNumbers;
 
-    @CommandLine.Parameters(paramLabel = "website url", description = "The contact's website url")
+    @CommandLine.Parameters(index = "4", paramLabel = "website url", description = "The contact's website url")
     private String websiteUrl;
 
-    @CommandLine.Parameters(arity = "1", paramLabel = "address", description = "The contact's address", converter
-            = AddressConverter.class)
+    @CommandLine.Parameters(index = "5", arity = "1", paramLabel = "address", description = "The contact's address",
+            converter =
+                    AddressConverter.class)
     private Address address;
 
-    @CommandLine.Parameters(arity = "1", paramLabel = "organization", description = "The organizations a contact " +
-                                                                                    "belongs to, from most to least " +
-                                                                                    "specific", converter =
+    @CommandLine.Parameters(index = "6", arity = "1", paramLabel = "organization", description = """
+                                                                                                 The organizations a contact
+                                                                                                 belongs to, from most to least
+                                                                                                 specific
+                                                                                                 """, converter =
             OrganizationConverter.class)
     private Organization organization;
 
@@ -70,8 +77,10 @@ public class QrGenerator implements Runnable {
 
         QrCode qr = QrCode.encodeText(vCard, errCorLvl);
 
-        BufferedImage img     = ImageUtils.toImage(qr, 10, 4); // Convert to bitmap image
-        File          imgFile = new File("hello-world-QR.png");   // File path for output
+        String        filePathName = String.join("_", firstName, lastName, Instant.now().toString());
+        BufferedImage img          = ImageUtils.toImage(qr, 10, 4); // Convert to bitmap image
+        File          imgFile      = new File(filePathName + ".png"); // File path for output
+
         try {
             ImageIO.write(img, "png", imgFile);                     // Write image to file
         } catch (IOException e) {
@@ -80,7 +89,7 @@ public class QrGenerator implements Runnable {
         }
 
         String svg     = ImageUtils.toSvgString(qr, 1, "#FFFFFF", "#000000");  // Convert to SVG XML code
-        File   svgFile = new File("carolina-website.svg");          // File path for output
+        File   svgFile = new File(filePathName + ".svg");          // File path for output
         try {
             Files.writeString(svgFile.toPath(), svg); // write image to file
         } catch (IOException e) {
@@ -103,7 +112,6 @@ public class QrGenerator implements Runnable {
 
         phoneNumbers.forEach((key, value) -> vcard.addTelephoneNumber(value, key));
 
-        vcard.addTelephoneNumber("+310648032045", TelephoneType.CELL);
         vcard.addEmail(email);
         vcard.addUrl(websiteUrl);
         vcard.addAddress(address);
