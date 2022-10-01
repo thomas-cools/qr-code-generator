@@ -7,22 +7,28 @@ import picocli.CommandLine;
 public class OrganizationConverter implements CommandLine.ITypeConverter<Organization> {
 
     @Override
-    public Organization convert(String value) {
-        if (value.isBlank()) {
+    public Organization convert(String organizationString) {
+        if (organizationString.isBlank()) {
             throw new CommandLine.TypeConversionException("Missing organization");
         }
 
-        String[] split = value.split(":");
-        if (ArrayUtils.isEmpty(split) || split.length < 2) {
+        String[] split = organizationString.split(":");
+        if (ArrayUtils.isEmpty(split) || split.length == 1) {
+            Organization organization = new Organization();
+            organization.getValues().add(organizationString);
+            return organization;
+        }
+
+        if (split.length > 2) {
             throw new CommandLine.TypeConversionException(String.format("Organization string is invalid: [%s]. " +
                                                                         "Usage is companyName:team",
-                                                                        value));
+                                                                        organizationString));
         }
 
         Organization organization = new Organization();
         organization.getValues().add(split[0]);
         organization.getValues().add(split[1]);
 
-       return organization;
+        return organization;
     }
 }
