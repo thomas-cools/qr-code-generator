@@ -1,5 +1,6 @@
 package com.cools.qr;
 
+import ezvcard.property.Telephone;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import java.util.Objects;
@@ -7,13 +8,13 @@ import java.util.Set;
 
 public class PhoneNumbers {
 
-    private final Set<String> phoneNumbers;
+    private final Set<Telephone> phoneNumbers;
 
-    public PhoneNumbers(Set<String> phoneNumbers) {
+    public PhoneNumbers(Set<Telephone> phoneNumbers) {
         this.phoneNumbers = phoneNumbers;
     }
 
-    public Set<String> getPhoneNumbers() {
+    public Set<Telephone> getPhoneNumbers() {
         return phoneNumbers;
     }
 

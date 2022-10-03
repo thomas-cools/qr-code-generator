@@ -1,12 +1,13 @@
 package com.cools.qr.converter;
 
 import com.cools.qr.PhoneNumbers;
+import ezvcard.property.Telephone;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import picocli.CommandLine;
 
-import java.util.Arrays;
-import java.util.stream.Collectors;
+import java.util.HashSet;
+import java.util.Set;
 
 public class PhoneNumbersConverter implements CommandLine.ITypeConverter<PhoneNumbers> {
 
@@ -28,6 +29,14 @@ public class PhoneNumbersConverter implements CommandLine.ITypeConverter<PhoneNu
                                                                         DELIMITER));
         }
 
-        return new PhoneNumbers(Arrays.stream(numbers).collect(Collectors.toSet()));
+        Set<Telephone> telephones = new HashSet<>();
+        int            pref       = numbers.length;
+        for (String number : numbers) {
+            Telephone telephone = new Telephone(number);
+            telephone.setPref(pref--);
+            telephones.add(telephone);
+        }
+
+        return new PhoneNumbers(telephones);
     }
 }

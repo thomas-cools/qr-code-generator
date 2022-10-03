@@ -5,7 +5,8 @@ import com.cools.qr.converter.AddressConverter;
 import com.cools.qr.converter.OrganizationConverter;
 import com.cools.qr.converter.PhoneNumbersConverter;
 import com.cools.qr.converter.PhoneTypeConverter;
-import com.cools.qr.converter.RoleConverter;
+import com.cools.qr.converter.PhotoConverter;
+import com.cools.qr.converter.TitleConverter;
 import com.cools.qr.util.ImageUtils;
 import ezvcard.Ezvcard;
 import ezvcard.VCard;
@@ -13,8 +14,10 @@ import ezvcard.VCardVersion;
 import ezvcard.parameter.TelephoneType;
 import ezvcard.property.Address;
 import ezvcard.property.Organization;
-import ezvcard.property.Role;
+import ezvcard.property.Photo;
 import ezvcard.property.StructuredName;
+import ezvcard.property.Telephone;
+import ezvcard.property.Title;
 import io.nayuki.qrcodegen.QrCode;
 import picocli.CommandLine;
 
@@ -44,7 +47,6 @@ public class QrGenerator implements Runnable {
     private String email;
 
 
-
     @CommandLine.Parameters(index = "3", paramLabel = "website url", description = "The contact's website url")
     private String websiteUrl;
 
@@ -53,21 +55,23 @@ public class QrGenerator implements Runnable {
     private Address address;
 
     @CommandLine.Parameters(index = "5", arity = "1", paramLabel = "organization", description = """
-                                                                                    The organizations a contact
-                                                                                    belongs to, from most to least
-                                                                                    specific
-                                                                                    """, converter =
+                                                                                                 The organizations a contact
+                                                                                                 belongs to, from most to least
+                                                                                                 specific
+                                                                                                 """, converter =
             OrganizationConverter.class)
     private Organization organization;
 
-    @CommandLine.Parameters(index = "6", arity = "1", paramLabel = "role", description = "Role within the " +
-                                                                            "organization", converter =
-            RoleConverter.class)
-    private Role role;
+    @CommandLine.Parameters(index = "6", arity = "1", paramLabel = "title", description = "Job title", converter =
+            TitleConverter.class)
+    private Title title;
 
-    @CommandLine.Parameters(index = "7..*", arity = "1", paramLabel = "phoneNumbers", description = "The contact's " +
-                                                                                                    "phone" + " " +
-                                                                                                    "numbers")
+    @CommandLine.Parameters(index = "7", arity = "1", paramLabel = "logo", description = "Organization logo",
+            converter = PhotoConverter.class)
+    private Photo photo;
+
+    @CommandLine.Parameters(index = "8..*", arity = "1", paramLabel = "phoneNumbers", description =
+            "The contact's " + "phone" + " " + "numbers")
     private Map<TelephoneType, PhoneNumbers> phoneNumbers;
 
     public static void main(String... args) {
@@ -83,14 +87,22 @@ public class QrGenerator implements Runnable {
 
     @Override
     public void run() {
-        QrCode.Ecc errCorLvl = QrCode.Ecc.LOW;
+        QrCode.Ecc errCorLvl = QrCode.Ecc.MEDIUM;
 
-        String vCard = createVCard(firstName, lastName, phoneNumbers, email, websiteUrl, address, organization, role);
+        String vCard = createVCard(firstName,
+                                   lastName,
+                                   email,
+                                   websiteUrl,
+                                   address,
+                                   organization,
+                                   title,
+                                   photo,
+                                   phoneNumbers);
 
         QrCode qr = QrCode.encodeText(vCard, errCorLvl);
 
         String        filePathName = "target" + "/" + String.join("_", firstName, lastName, Instant.now().toString());
-        BufferedImage img          = ImageUtils.toImage(qr, 10, 4); // Convert to bitmap image
+        BufferedImage img          = ImageUtils.toImage(qr, 5, 4); // Convert to bitmap image
         File          imgFile      = new File(filePathName + ".png"); // File path for output
 
         try {
@@ -100,7 +112,7 @@ public class QrGenerator implements Runnable {
             throw new RuntimeException(e);
         }
 
-        String svg     = ImageUtils.toSvgString(qr, 1, "#FFFFFF", "#000000");  // Convert to SVG XML code
+        String svg     = ImageUtils.toSvgString(qr, 4, "#FFFFFF", "#000000");  // Convert to SVG XML code
         File   svgFile = new File(filePathName + ".svg");          // File path for output
         try {
             Files.writeString(svgFile.toPath(), svg); // write image to file
@@ -112,28 +124,32 @@ public class QrGenerator implements Runnable {
 
     private String createVCard(String firstName,
                                String lastName,
-                               Map<TelephoneType, PhoneNumbers> phoneNumbers,
                                String email,
                                String websiteUrl,
                                Address address,
                                Organization organization,
-                               Role role) {
+                               Title title,
+                               Photo photo,
+                               Map<TelephoneType, PhoneNumbers> phoneNumbers) {
         VCard vcard = new VCard(VCardVersion.V3_0);
 
         StructuredName n = new StructuredName();
         n.setFamily(lastName);
         n.setGiven(firstName);
         vcard.setStructuredName(n);
-        vcard.addProperty(role);
 
         vcard.setFormattedName(String.join(" ", firstName, lastName));
         vcard.setOrganization(organization);
+        vcard.addTitle(title);
 
         for (Map.Entry<TelephoneType, PhoneNumbers> numbers : phoneNumbers.entrySet()) {
-            for (String number : numbers.getValue().getPhoneNumbers()) {
-                vcard.addTelephoneNumber(number, numbers.getKey());
+            for (Telephone telephone : numbers.getValue().getPhoneNumbers()) {
+                telephone.getTypes().add(numbers.getKey());
+                vcard.addTelephoneNumber(telephone);
             }
         }
+
+        vcard.addPhoto(photo);
 
         vcard.addEmail(email);
         vcard.addUrl(websiteUrl);
