@@ -14,13 +14,13 @@ public class AddressConverter implements CommandLine.ITypeConverter<Address> {
         String[] addressValues = s.split(":");
         if (ArrayUtils.isEmpty(addressValues) || addressValues.length < 6) {
             throw new CommandLine.TypeConversionException(String.format("""
-                                                                        Address string is invalid: [%s]. Usage is streetAddress:city:province:country:postcode
+                                                                        Address string is invalid: [%s]. Usage is suite|houseNumber:streetAddress:city:province:country:postcode
                                                                         """, s));
         }
 
         Address address = new Address();
-        address.getStreetAddresses().add(addressValues[0]);
-        address.getStreetAddresses().add(addressValues[1]);
+        address.setExtendedAddress(addressValues[0]);
+        address.setStreetAddress(addressValues[1]);
         address.setLocality(addressValues[2]);
         address.setRegion(addressValues[3]);
         address.setCountry(addressValues[4]);

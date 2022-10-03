@@ -21,8 +21,7 @@ public class PhotoConverter implements CommandLine.ITypeConverter<Photo> {
 
         File logoFile = new File(getClass().getClassLoader().getResource(filePath).toURI());
 
-        BufferedImage bufferedImage = Thumbnails.of(logoFile).scale(0.08).outputQuality(1.0d)
-                                                .asBufferedImage();
+        BufferedImage bufferedImage = Thumbnails.of(logoFile).scale(1.0d).outputQuality(1.0d).asBufferedImage();
 
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 
