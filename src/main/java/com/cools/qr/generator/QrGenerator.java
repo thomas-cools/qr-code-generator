@@ -5,7 +5,6 @@ import com.cools.qr.converter.AddressConverter;
 import com.cools.qr.converter.OrganizationConverter;
 import com.cools.qr.converter.PhoneNumbersConverter;
 import com.cools.qr.converter.PhoneTypeConverter;
-import com.cools.qr.converter.PhotoConverter;
 import com.cools.qr.converter.TitleConverter;
 import com.cools.qr.util.ImageUtils;
 import ezvcard.Ezvcard;
@@ -14,7 +13,6 @@ import ezvcard.VCardVersion;
 import ezvcard.parameter.TelephoneType;
 import ezvcard.property.Address;
 import ezvcard.property.Organization;
-import ezvcard.property.Photo;
 import ezvcard.property.StructuredName;
 import ezvcard.property.Telephone;
 import ezvcard.property.Title;
@@ -26,6 +24,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Map;
 import java.util.logging.Level;
@@ -66,11 +65,7 @@ public class QrGenerator implements Runnable {
             TitleConverter.class)
     private Title title;
 
-    @CommandLine.Parameters(index = "7", arity = "1", paramLabel = "logo", description = "Organization logo",
-            converter = PhotoConverter.class)
-    private Photo photo;
-
-    @CommandLine.Parameters(index = "8..*", arity = "1", paramLabel = "phoneNumbers", description =
+    @CommandLine.Parameters(index = "7..*", arity = "1", paramLabel = "phoneNumbers", description =
             "The contact's " + "phone" + " " + "numbers")
     private Map<TelephoneType, PhoneNumbers> phoneNumbers;
 
@@ -87,17 +82,21 @@ public class QrGenerator implements Runnable {
 
     @Override
     public void run() {
-        QrCode.Ecc errCorLvl = QrCode.Ecc.MEDIUM;
+        QrCode.Ecc errCorLvl = QrCode.Ecc.LOW;
 
-        String vCard = createVCard(firstName,
-                                   lastName,
-                                   email,
-                                   websiteUrl,
-                                   address,
-                                   organization,
-                                   title,
-                                   photo,
-                                   phoneNumbers);
+        String vCard;
+        try {
+            vCard = createVCard(firstName,
+                                lastName,
+                                email,
+                                websiteUrl,
+                                address,
+                                organization,
+                                title,
+                                phoneNumbers);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         QrCode qr = QrCode.encodeText(vCard, errCorLvl);
 
@@ -129,9 +128,8 @@ public class QrGenerator implements Runnable {
                                Address address,
                                Organization organization,
                                Title title,
-                               Photo photo,
-                               Map<TelephoneType, PhoneNumbers> phoneNumbers) {
-        VCard vcard = new VCard(VCardVersion.V3_0);
+                               Map<TelephoneType, PhoneNumbers> phoneNumbers) throws IOException {
+        VCard vcard = new VCard(VCardVersion.V4_0);
 
         StructuredName n = new StructuredName();
         n.setFamily(lastName);
@@ -149,12 +147,11 @@ public class QrGenerator implements Runnable {
             }
         }
 
-        vcard.addPhoto(photo);
-
         vcard.addEmail(email);
         vcard.addUrl(websiteUrl);
         vcard.addAddress(address);
+        Ezvcard.write(vcard).go(Path.of("vcard.vcf"));
 
-        return Ezvcard.write(vcard).version(VCardVersion.V3_0).go();
+        return Ezvcard.write(vcard).version(VCardVersion.V4_0).go();
     }
 }

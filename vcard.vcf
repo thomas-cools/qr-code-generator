@@ -1,0 +1,15 @@
+BEGIN:VCARD
+VERSION:4.0
+PRODID:ez-vcard 0.12.1
+N:Badillo;Daniela;;;
+FN:Daniela Badillo
+ORG:Aldeco Bienes Raices
+TITLE:Asesor Inmobiliario
+TEL;PREF=1;TYPE=cell:+528119405382
+TEL;PREF=2;TYPE=work:+528115888263
+TEL;PREF=1;TYPE=work:+528118781367
+EMAIL:daniela.badillo@licenciaapi.com
+URL:http://www.aldecobienesraices.com
+ADR:;Local 11;Av Paseo de los Leones 101\,Cumbres Elite 5to. Sector\,;Monte
+ rrey;Nuevo Leon.;64349;MX
+END:VCARD
